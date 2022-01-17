@@ -21,7 +21,8 @@ public class Todo {
 
     public enum TODO_STATUS {
         DONE,
-        DOING
+        DOING,
+        TODO
     }
 
     public Todo(String description) {

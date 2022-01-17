@@ -1,6 +1,7 @@
 package com.example.demo.todo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,11 @@ public class TodoController {
     @GetMapping
     public List<Todo> getTodos() {
         return todoService.getToDos();
+    }
+
+    @GetMapping(path = "{id}")
+    EntityModel<Todo> getTodoById(@PathVariable Long id) {
+        return todoService.getTodoById(id);
     }
 
     @PostMapping

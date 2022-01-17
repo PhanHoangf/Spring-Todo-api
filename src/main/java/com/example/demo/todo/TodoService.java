@@ -1,11 +1,14 @@
 package com.example.demo.todo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 @Service
 public class TodoService {
@@ -26,8 +29,7 @@ public class TodoService {
 
     @Transactional
     public void updateTodoStatus(Long id) {
-        Todo todo = todoRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Todo with id: " + id + " does not exists"));
+        Todo todo = todoRepository.findById(id).orElseThrow(() -> new IllegalStateException("Todo with id: " + id + " does not exists"));
 
         if (todo.getStatus() == Todo.TODO_STATUS.DOING) {
             todo.setStatus(Todo.TODO_STATUS.DONE);
@@ -37,22 +39,24 @@ public class TodoService {
     public void deleteTodo(Long id) {
         boolean exists = todoRepository.existsById(id);
         if (!exists) {
-            throw new IllegalStateException(
-                    "Todo with id: " + id + " does not exists"
-            );
+            throw new IllegalStateException("Todo with id: " + id + " does not exists");
         }
         todoRepository.deleteById(id);
     }
 
     public List<Todo> getDoingTodos() {
-        return todoRepository.findAll().stream().filter(
-                todo -> todo.getStatus().equals(Todo.TODO_STATUS.DOING)
-        ).collect(Collectors.toList());
+        return todoRepository.findAll().stream().filter(todo -> todo.getStatus().equals(Todo.TODO_STATUS.DOING)).collect(Collectors.toList());
     }
 
     public List<Todo> getDoneTodos() {
-        return todoRepository.findAll().stream().filter(
-                todo -> todo.getStatus().equals(Todo.TODO_STATUS.DONE)
-        ).collect(Collectors.toList());
+        return todoRepository.findAll().stream().filter(todo -> todo.getStatus().equals(Todo.TODO_STATUS.DONE)).collect(Collectors.toList());
+    }
+
+    public EntityModel<Todo> getTodoById(Long id) {
+        Todo todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        return EntityModel.of(todo, //
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(TodoController.class).getTodoById(id)).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(TodoController.class).getTodos()).withRel("todos")
+        );
     }
 }
